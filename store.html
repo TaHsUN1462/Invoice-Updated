@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item Storage</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+        }
+        input[type="text"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #itemList {
+            margin-top: 20px;
+        }
+        .item {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .item:last-child {
+            border-bottom: none;
+        }
+        .delete-button {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+      
+      <a href="invoice.html">Store Prices</a>
+        <h1>Item Storage</h1>
+        <input type="text" id="itemName" placeholder="Enter item name">
+        <input type="text" id="itemBarcode" placeholder="Enter item barcode">
+        <input type="text" id="itemPrice" placeholder="Enter item price">
+        <button onclick="addItem()">Add Item</button>
+        <div id="itemList"></div>
+    </div>
+
+    <script>
+        function loadItems() {
+            const itemListDiv = document.getElementById('itemList');
+            itemListDiv.innerHTML = '';
+
+            const items = JSON.parse(localStorage.getItem('items')) || [];
+            items.forEach((item, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'item';
+                itemDiv.innerHTML = `
+                    <span>Name: ${item.name}, Barcode: ${item.barcode}, Price: ${item.price}</span>
+                    <button class="delete-button" onclick="deleteItem(${index})">Delete</button>
+                `;
+                itemListDiv.appendChild(itemDiv);
+            });
+        }
+
+        function addItem() {
+            const name = document.getElementById('itemName').value.trim();
+            const barcode = document.getElementById('itemBarcode').value.trim();
+            const price = document.getElementById('itemPrice').value.trim();
+            
+            if (!name || !barcode || !price) {
+                alert('Please enter name, barcode, and price.');
+                return;
+            }
+
+            const items = JSON.parse(localStorage.getItem('items')) || [];
+            items.push({ name, barcode, price });
+            localStorage.setItem('items', JSON.stringify(items));
+
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemBarcode').value = '';
+            document.getElementById('itemPrice').value = '';
+
+            loadItems();
+        }
+
+        function deleteItem(index) {
+            const items = JSON.parse(localStorage.getItem('items')) || [];
+            items.splice(index, 1); // Remove item at index
+            localStorage.setItem('items', JSON.stringify(items));
+            loadItems(); // Reload items after deletion
+        }
+
+        loadItems();
+    </script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Maker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+        }
+        input[type="text"], input[type="number"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #invoice {
+            margin-top: 20px;
+        }
+        .invoice-item {
+            padding: 10px;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .invoice-item:last-child {
+            border-bottom: none;
+        }
+        .delete-button {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+      <a href="store.html">Store Prices</a>
+        <h1>Invoice Maker</h1>
+        <input type="text" id="barcodeInput" placeholder="Enter barcode">
+        <button onclick="addItemToInvoice()">Add Item to Invoice</button>
+        <h2>Or Enter Item Details Manually</h2>
+        <input type="text" id="manualName" placeholder="Enter item name">
+        <input type="text" id="manualPrice" placeholder="Enter item price">
+        <button onclick="addManualItem()">Add Manual Item</button>
+        <div id="invoice"></div>
+        <button onclick="generateInvoice()">Generate Invoice</button>
+    </div>
+
+    <script>
+        let invoiceItems = [];
+
+        function addItemToInvoice() {
+            const barcode = document.getElementById('barcodeInput').value.trim();
+            const invoiceDiv = document.getElementById('invoice');
+
+            if (!barcode) {
+                alert('Please enter a barcode.');
+                return;
+            }
+
+            const items = JSON.parse(localStorage.getItem('items')) || [];
+            const item = items.find(item => item.barcode === barcode);
+
+            if (item) {
+                invoiceItems.push(item);
+                updateInvoice();
+                document.getElementById('barcodeInput').value = ''; // Clear input
+            } else {
+                alert('No item found for barcode: ' + barcode);
+            }
+        }
+
+        function addManualItem() {
+            const name = document.getElementById('manualName').value.trim();
+            const price = document.getElementById('manualPrice').value.trim();
+
+            if (!name || !price) {
+                alert('Please enter name and price.');
+                return;
+            }
+
+            invoiceItems.push({ name, barcode: 'N/A', price });
+            updateInvoice();
+
+            // Clear manual input fields
+            document.getElementById('manualName').value = '';
+            document.getElementById('manualPrice').value = '';
+        }
+
+        function updateInvoice() {
+            const invoiceDiv = document.getElementById('invoice');
+            invoiceDiv.innerHTML = '';
+
+            invoiceItems.forEach((item, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'invoice-item';
+                itemDiv.innerHTML = `
+                    <span>Item Name: ${item.name}, Barcode: ${item.barcode}, Price: ${item.price}</span>
+                    <button class="delete-button" onclick="removeItem(${index})">Remove</button>
+                `;
+                invoiceDiv.appendChild(itemDiv);
+            });
+        }
+
+        function removeItem(index) {
+            invoiceItems.splice(index, 1);
+            updateInvoice();
+        }
+
+        function generateInvoice() {
+            if (invoiceItems.length === 0) {
+                alert('No items in invoice.');
+                return;
+            }
+
+            let total = 0;
+            const invoiceContent = invoiceItems.map(item => {
+                total += parseFloat(item.price.replace(/[^0-9.-]+/g,"")); // Remove any non-numeric characters
+                return `Item Name: ${item.name}, Barcode: ${item.barcode}, Price: ${item.price}`;
+            }).join('<br>');
+
+            const invoiceDiv = document.getElementById('invoice');
+            invoiceDiv.innerHTML = `
+                <h2>Invoice</h2>
+                <div>${invoiceContent}</div>
+                <h3>Total: $${total.toFixed(2)}</h3>
+            `;
+        }
+    </script>
+</body>
+</html>
